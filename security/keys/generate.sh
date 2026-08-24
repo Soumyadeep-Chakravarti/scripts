@@ -6,15 +6,19 @@ source "$SCRIPT_DIR/lib/common.sh"
 
 SSH_DIR="$HOME/.ssh"
 
-mkdir -p "$SSH_DIR"
-chmod 700 "$SSH_DIR"
+for arg in "$@"; do
+    parse_common_flag "$arg" || die "Usage: generate.sh [--dry-run] [--yes]"
+done
 
 printf '%bSSH identity generator%b\n\n' "$BOLD" "$RESET"
 
 read -r -p "Identity name [github-automation]: " NAME
 NAME="${NAME:-github-automation}"
 
-read -r -p "Comment [${NAME}@$(hostname)]: " COMMENT
+[[ "$NAME" == "$(basename -- "$NAME")" && "$NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] ||
+    die "Identity name must be a safe basename (letters, digits, dot, underscore, and hyphen only)."
+
+read -r -p "Comment [${NAME}@${HOSTNAME:-localhost}]: " COMMENT
 COMMENT="${COMMENT:-${NAME}@${HOSTNAME:-localhost}}"
 
 KEY="$SSH_DIR/$NAME"
@@ -23,23 +27,27 @@ if [[ -e "$KEY" || -e "$KEY.pub" ]]; then
     die "Identity already exists: $KEY"
 fi
 
-log_info "Generating Ed25519 identity..."
-log_info "Purpose: $NAME"
+run_mutating "Generate Ed25519 identity $NAME" bash -c '
+    set -euo pipefail
+    umask 077
+    mkdir -p "$1"
+    chmod 700 "$1"
+    ssh-keygen -t ed25519 -f "$2" -C "$3"
+    chmod 600 "$2"
+    chmod 644 "$2.pub"
+' _ "$SSH_DIR" "$KEY" "$COMMENT" || exit 0
 
-ssh-keygen \
-    -t ed25519 \
-    -f "$KEY" \
-    -C "$COMMENT"
-
-chmod 600 "$KEY"
-chmod 644 "$KEY.pub"
+if [[ "$DRY_RUN" == 1 ]]; then
+    log_info "Identity generation preview complete."
+    exit 0
+fi
 
 printf '\n'
 log_success "Identity created."
 printf '\n'
 
 printf '%bPublic key:%b\n' "$BOLD" "$RESET"
-cat "$KEY.pub"
+[[ "$DRY_RUN" == 1 ]] || cat "$KEY.pub"
 
 printf '\n'
 log_info "Private key: $KEY"

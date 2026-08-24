@@ -7,6 +7,10 @@ source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/detect.sh"
 source "$SCRIPT_DIR/lib/packages.sh"
 
+for arg in "$@"; do
+    parse_common_flag "$arg" || die "Usage: keyring.sh [--dry-run] [--yes]"
+done
+
 install_keyring() {
     if command_exists secret-tool; then
         log_success "Secret Service tooling already installed."
@@ -15,22 +19,10 @@ install_keyring() {
 
     log_info "Installing Secret Service tooling..."
 
-    case "$PKG_MANAGER" in
-        pacman)
-            install_packages libsecret
-            ;;
-        apt)
-            install_packages libsecret-tools
-            ;;
-        dnf)
-            install_packages libsecret
-            ;;
-        zypper)
-            install_packages libsecret
-            ;;
-        *)
-            die "Keyring installation is not yet supported for: $PKG_MANAGER"
-            ;;
+    case "$(detect_package_manager)" in
+        pacman) packages_install libsecret ;;
+        apt) packages_install libsecret-tools ;;
+        *) die "Keyring installation is not supported by the detected package manager." ;;
     esac
 
     log_success "Keyring tooling installed."
@@ -63,15 +55,13 @@ store_secret() {
     read -rs SECRET
     printf '\n'
 
-    printf '%s' "$SECRET" |
-        secret-tool store \
-            --label="$service/$account" \
-            service "$service" \
-            account "$account"
+    SECRET_VALUE="$SECRET" run_mutating "Store secret for $service/$account" bash -c \
+        'printf %s "$SECRET_VALUE" | secret-tool store --label="$1/$2" service "$1" account "$2"' \
+        _ "$service" "$account" || return 0
 
     unset SECRET
 
-    log_success "Secret stored in the system keyring."
+    [[ "$DRY_RUN" == 1 ]] && log_info "Secret storage preview complete." || log_success "Secret stored in the system keyring."
 }
 
 lookup_secret() {
@@ -91,20 +81,19 @@ delete_secret() {
     local service="$1"
     local account="$2"
 
-    secret-tool clear \
-        service "$service" \
-        account "$account"
+    run_mutating "Delete secret for $service/$account" secret-tool clear \
+        service "$service" account "$account" || return 0
 
-    log_success "Secret removed from keyring."
+    [[ "$DRY_RUN" == 1 ]] && log_info "Secret deletion preview complete." || log_success "Secret removed from keyring."
 }
 
 menu() {
     while true; do
-        clear 2>/dev/null || true
+        clear 2> /dev/null || true
 
         print_banner
 
-        cat <<'MENU'
+        cat << 'MENU'
 Keyring
 
   1) Install / verify keyring
@@ -149,9 +138,7 @@ MENU
                 read -r -p "Service: " SERVICE
                 read -r -p "Account/name: " ACCOUNT
 
-                if confirm "Delete $SERVICE/$ACCOUNT?"; then
-                    delete_secret "$SERVICE" "$ACCOUNT"
-                fi
+                delete_secret "$SERVICE" "$ACCOUNT"
 
                 pause
                 ;;

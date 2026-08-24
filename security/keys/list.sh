@@ -6,6 +6,11 @@ source "$SCRIPT_DIR/lib/common.sh"
 
 SSH_DIR="$HOME/.ssh"
 
+for arg in "$@"; do
+    parse_common_flag "$arg" || die "Usage: list.sh [--dry-run] [--yes]"
+done
+[[ "$DRY_RUN" == 1 ]] && log_info '--dry-run has no effect: listing keys is read-only.'
+
 printf '%bManaged SSH keys%b\n\n' "$BOLD" "$RESET"
 
 found=0
@@ -18,7 +23,7 @@ while IFS= read -r -d '' PUB; do
     printf '%b%s%b\n' "$CYAN" "$(basename "$KEY")" "$RESET"
 
     if command_exists ssh-keygen; then
-        ssh-keygen -lf "$PUB" 2>/dev/null || true
+        ssh-keygen -lf "$PUB" 2> /dev/null || true
     fi
 
     printf '  Public:  %s\n' "$PUB"
@@ -32,6 +37,6 @@ done < <(
         -print0
 )
 
-if (( ! found )); then
+if ((!found)); then
     log_info "No SSH public keys found."
 fi

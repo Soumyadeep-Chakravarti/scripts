@@ -6,10 +6,10 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 
 while true; do
-    clear 2>/dev/null || true
+    clear 2> /dev/null || true
     print_banner
 
-    cat <<'MENU'
+    cat << 'MENU'
 Security
 
   1) System security
@@ -25,7 +25,7 @@ MENU
             clear
             print_banner
 
-            cat <<'SYSTEM'
+            cat << 'SYSTEM'
 System security
 
   1) Security audit
@@ -39,12 +39,27 @@ SYSTEM
             read -r -p "Select: " SYSTEM_CHOICE
 
             case "$SYSTEM_CHOICE" in
-                1) bash "$SCRIPT_DIR/security/system/audit.sh"; pause ;;
-                2) bash "$SCRIPT_DIR/security/system/firewall.sh"; pause ;;
-                3) bash "$SCRIPT_DIR/security/system/ssh-hardening.sh"; pause ;;
-                4) bash "$SCRIPT_DIR/security/system/permissions.sh"; pause ;;
+                1)
+                    bash "$SCRIPT_DIR/security/system/audit.sh"
+                    pause
+                    ;;
+                2)
+                    bash "$SCRIPT_DIR/security/system/firewall.sh"
+                    pause
+                    ;;
+                3)
+                    bash "$SCRIPT_DIR/security/system/ssh-hardening.sh"
+                    pause
+                    ;;
+                4)
+                    bash "$SCRIPT_DIR/security/system/permissions.sh"
+                    pause
+                    ;;
                 0) ;;
-                *) log_warn "Invalid selection."; sleep 1 ;;
+                *)
+                    log_warn "Invalid selection."
+                    sleep 1
+                    ;;
             esac
             ;;
 
@@ -52,7 +67,7 @@ SYSTEM
             clear
             print_banner
 
-            cat <<'KEYS'
+            cat << 'KEYS'
 Key & secret management
 
   1) Keyring
@@ -68,12 +83,27 @@ KEYS
 
             case "$KEY_CHOICE" in
                 1) bash "$SCRIPT_DIR/security/keys/keyring.sh" ;;
-                2) bash "$SCRIPT_DIR/security/keys/generate.sh"; pause ;;
-                3) bash "$SCRIPT_DIR/security/keys/list.sh"; pause ;;
-                4) bash "$SCRIPT_DIR/security/keys/backup.sh"; pause ;;
-                5) bash "$SCRIPT_DIR/security/keys/remove.sh"; pause ;;
+                2)
+                    bash "$SCRIPT_DIR/security/keys/generate.sh"
+                    pause
+                    ;;
+                3)
+                    bash "$SCRIPT_DIR/security/keys/list.sh"
+                    pause
+                    ;;
+                4)
+                    bash "$SCRIPT_DIR/security/keys/backup.sh"
+                    pause
+                    ;;
+                5)
+                    bash "$SCRIPT_DIR/security/keys/remove.sh"
+                    pause
+                    ;;
                 0) ;;
-                *) log_warn "Invalid selection."; sleep 1 ;;
+                *)
+                    log_warn "Invalid selection."
+                    sleep 1
+                    ;;
             esac
             ;;
 
