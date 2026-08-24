@@ -59,7 +59,26 @@ die() {
 # ─────────────────────────────────────────────
 
 command_exists() {
-    command -v "$1" >/dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
+}
+
+DRY_RUN="${DRY_RUN:-0}"
+ASSUME_YES="${ASSUME_YES:-0}"
+
+parse_common_flag() {
+    case "$1" in
+        --dry-run)
+            DRY_RUN=1
+            return 0
+            ;;
+        --yes)
+            ASSUME_YES=1
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 require_command() {
@@ -81,16 +100,54 @@ confirm() {
 
     local answer
 
+    if [[ "$ASSUME_YES" == 1 ]]; then
+        return 0
+    fi
+
+    if [[ ! -t 0 ]]; then
+        log_warn "Refusing to prompt without a terminal; use --yes to continue."
+        return 1
+    fi
+
     read -r -p "$prompt [y/N] " answer
 
     case "$answer" in
-        y|Y|yes|YES|Yes)
+        y | Y | yes | YES | Yes)
             return 0
             ;;
         *)
             return 1
             ;;
     esac
+}
+
+print_command() {
+    local arg
+
+    printf 'Would run:'
+    for arg in "$@"; do
+        printf ' %q' "$arg"
+    done
+    printf '\n'
+}
+
+# Route every state-changing command through this helper.
+run_mutating() {
+    local description="$1"
+    shift
+
+    if [[ "$DRY_RUN" == 1 ]]; then
+        log_info "[dry-run] $description"
+        print_command "$@"
+        return 0
+    fi
+
+    if ! confirm "$description"; then
+        log_info "Skipped: $description"
+        return 1
+    fi
+
+    "$@"
 }
 
 pause() {
