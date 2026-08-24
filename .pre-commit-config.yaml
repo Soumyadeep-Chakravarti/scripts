@@ -1,0 +1,31 @@
+repos:
+  - repo: local
+    hooks:
+      - id: bash-syntax
+        name: Bash syntax
+        entry: bash -c 'for file in "$@"; do bash -n "$file" || exit 1; done' --
+        language: system
+        files: \.sh$
+
+      - id: shellcheck-strict
+        name: ShellCheck strict
+        entry: shellcheck
+        language: system
+        files: \.sh$
+        args:
+          - --shell=bash
+          - --external-sources
+          - --enable=all
+          - --severity=style
+
+      - id: shfmt-check
+        name: shfmt check
+        entry: shfmt
+        language: system
+        files: \.sh$
+        args:
+          - -d
+          - -i
+          - "4"
+          - -ci
+          - -sr
