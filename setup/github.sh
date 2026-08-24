@@ -11,7 +11,7 @@ if ! command_exists gh; then
     exit 1
 fi
 
-if gh auth status >/dev/null 2>&1; then
+if gh auth status > /dev/null 2>&1; then
     log_success "GitHub CLI is already authenticated."
     gh auth status
     exit 0

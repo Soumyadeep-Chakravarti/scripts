@@ -6,11 +6,11 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 
 while true; do
-    clear 2>/dev/null || true
+    clear 2> /dev/null || true
 
     print_banner
 
-    cat <<'MENU'
+    cat << 'MENU'
 GitHub / Git
 
   1) Authenticate GitHub CLI

@@ -5,8 +5,20 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 source "$SCRIPT_DIR/lib/common.sh"
 
-read -r -p "Projects directory [${HOME}/projects]: " ROOT
-ROOT="${ROOT:-$HOME/projects}"
+require_command git
+
+root=""
+for arg in "$@"; do
+    if parse_common_flag "$arg"; then
+        continue
+    fi
+    [[ -z "$root" ]] || die "Usage: sync-all.sh [--dry-run] [--yes] [projects-directory]"
+    root="$arg"
+done
+if [[ -z "$root" ]]; then
+    read -r -p "Projects directory [${HOME}/projects]: " root
+fi
+ROOT="${root:-$HOME/projects}"
 
 [[ -d "$ROOT" ]] || die "Directory does not exist: $ROOT"
 
@@ -19,21 +31,34 @@ while IFS= read -r -d '' GITDIR; do
 
     printf '\n%b==>%b %s\n' "$CYAN" "$RESET" "$REPO"
 
+    if ! git -C "$REPO" status --porcelain > /dev/null 2>&1; then
+        log_warn "Unable to inspect repository — skipped."
+        SKIPPED+=("$REPO")
+        continue
+    fi
+
     if [[ -n "$(git -C "$REPO" status --porcelain)" ]]; then
         log_warn "Dirty working tree — skipped."
         SKIPPED+=("$REPO")
         continue
     fi
 
-    if ! git -C "$REPO" remote get-url origin >/dev/null 2>&1; then
+    if ! git -C "$REPO" remote get-url origin > /dev/null 2>&1; then
         log_warn "No origin remote — skipped."
         SKIPPED+=("$REPO")
         continue
     fi
 
-    if git -C "$REPO" pull --ff-only; then
+    if [[ -f "$REPO/.gitattributes" ]] && grep -q 'filter=lfs' "$REPO/.gitattributes" && ! git lfs version > /dev/null 2>&1; then
+        log_warn "Repository uses Git LFS but git-lfs is unavailable — skipped."
+        SKIPPED+=("$REPO")
+        continue
+    fi
+
+    if run_mutating "Fetch updates for $REPO" git -C "$REPO" fetch --prune origin &&
+        run_mutating "Fast-forward $REPO" git -C "$REPO" pull --ff-only; then
         UPDATED+=("$REPO")
-        log_success "Synced."
+        [[ "$DRY_RUN" == 1 ]] && log_info "Planned sync." || log_success "Synced."
     else
         log_error "Sync failed."
         FAILED+=("$REPO")
@@ -66,4 +91,4 @@ if ((${#FAILED[@]})); then
     exit 1
 fi
 
-log_success "Repository sync complete."
+[[ "$DRY_RUN" == 1 ]] && log_info "Repository sync preview complete." || log_success "Repository sync complete."
