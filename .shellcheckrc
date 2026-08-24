@@ -1,0 +1,11 @@
+# The scripts deliberately use concise variable references and dynamically load
+# repository-controlled profiles. These checks cannot be resolved per file.
+enable=all
+severity=style
+external-sources=true
+exclude=SC1090
+exclude=SC2034
+exclude=SC2154
+exclude=SC2249
+exclude=SC2250
+exclude=SC2312
