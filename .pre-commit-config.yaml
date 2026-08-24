@@ -9,7 +9,7 @@ repos:
 
       - id: shellcheck-strict
         name: ShellCheck strict
-        entry: bash -c 'root=$(git rev-parse --show-toplevel); exec nix develop "path:$(cd "$root/.." && pwd)/nix#quality" --command shellcheck --shell=bash --external-sources --enable=all --severity=style "$@"' --
+        entry: bash -c 'root=$(git rev-parse --show-toplevel); exec nix develop "path:$(cd "$root/.." && pwd)/nix#quality" --command shellcheck --rcfile "$root/.shellcheckrc" "$@"' --
         language: system
         files: \.sh$
 
