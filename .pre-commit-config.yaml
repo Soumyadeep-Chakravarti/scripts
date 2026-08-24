@@ -9,23 +9,12 @@ repos:
 
       - id: shellcheck-strict
         name: ShellCheck strict
-        entry: shellcheck
+        entry: bash -c 'root=$(git rev-parse --show-toplevel); exec nix develop "path:$(cd "$root/.." && pwd)/nix#quality" --command shellcheck --shell=bash --external-sources --enable=all --severity=style "$@"' --
         language: system
         files: \.sh$
-        args:
-          - --shell=bash
-          - --external-sources
-          - --enable=all
-          - --severity=style
 
       - id: shfmt-check
         name: shfmt check
-        entry: shfmt
+        entry: bash -c 'root=$(git rev-parse --show-toplevel); exec nix develop "path:$(cd "$root/.." && pwd)/nix#quality" --command shfmt -d -i 4 -ci -sr "$@"' --
         language: system
         files: \.sh$
-        args:
-          - -d
-          - -i
-          - "4"
-          - -ci
-          - -sr
