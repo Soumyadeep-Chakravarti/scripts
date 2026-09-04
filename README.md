@@ -8,12 +8,19 @@ This repository provides interactive workstation automation. It supports only th
 ```bash
 bash check.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
 bash bootstrap.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
+bash setup/system.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
 ```
 
 `check.sh` is read-only. It validates Bash, the selected profile declaration, OS,
 WSL requirement, and package-manager match. `bootstrap.sh` selects a profile and
 opens Development, Desktop, GitHub, Maintenance, Projects, Security, and System
 menus.
+
+`setup/system.sh` is the non-interactive baseline setup entry point. It validates
+the profile, installs the profile's foundation, shell, CLI, and development tools,
+deploys dotfiles, and verifies the expected commands. It intentionally leaves
+GitHub authentication, service activation, and optional security hardening
+explicit.
 
 State-changing actions source `lib/common.sh` and use `run_mutating`. It prints
 commands without running them with `--dry-run`, asks for confirmation by default,

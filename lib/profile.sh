@@ -39,14 +39,28 @@ profile_load() {
         return 1
     }
 
-    unset PROFILE_NAME PROFILE_DESCRIPTION PROFILE_OS_ID PROFILE_REQUIRES_WSL PROFILE_PACKAGE_MANAGER PROFILE_PACKAGES
+    unset PROFILE_NAME PROFILE_DESCRIPTION PROFILE_OS_ID PROFILE_REQUIRES_WSL PROFILE_PACKAGE_MANAGER
+    PROFILE_FOUNDATION_PACKAGES=()
+    PROFILE_SHELL_PACKAGES=()
+    PROFILE_CLI_PACKAGES=()
+    PROFILE_DEV_PACKAGES=()
+    PROFILE_PACKAGES=()
+    PROFILE_COMMANDS=()
+
     # Profile files are repository-maintained declarations, not user input.
     source "$profile_file"
 
-    [[ "$PROFILE_NAME" == "$profile" && -n "$PROFILE_DESCRIPTION" && -n "$PROFILE_OS_ID" && -n "$PROFILE_PACKAGE_MANAGER" ]] || {
+    if [[ 
+        "$PROFILE_NAME" != "$profile" ||
+        -z "$PROFILE_DESCRIPTION" ||
+        -z "$PROFILE_OS_ID" ||
+        -z "$PROFILE_PACKAGE_MANAGER" ||
+        ${#PROFILE_PACKAGES[@]} -eq 0 ||
+        ${#PROFILE_COMMANDS[@]} -eq 0 ]] \
+        ; then
         log_error "Invalid profile configuration: $profile_file"
         return 1
-    }
+    fi
 }
 
 profile_verify_environment() {
