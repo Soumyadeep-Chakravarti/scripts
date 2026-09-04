@@ -7,7 +7,7 @@ source "$SCRIPT_ROOT/lib/detect.sh"
 source "$SCRIPT_ROOT/lib/profile.sh"
 
 usage() {
-    printf 'Usage: %s [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]\n' "${0##*/}"
+    printf 'Usage: %s [--profile wsl-arch|arch|ubuntu-dev] [--dry-run] [--yes]\n' "${0##*/}"
 }
 
 profile=''

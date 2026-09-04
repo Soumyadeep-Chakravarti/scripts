@@ -1,14 +1,14 @@
 # System automation scripts
 
 This repository provides interactive workstation automation. It supports only the
-`wsl-arch` and `ubuntu-dev` profiles; all other profile names are rejected.
+`wsl-arch`, `arch`, and `ubuntu-dev` profiles; all other profile names are rejected.
 
 ## Usage
 
 ```bash
-bash check.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
-bash bootstrap.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
-bash setup/system.sh [--profile wsl-arch|ubuntu-dev] [--dry-run] [--yes]
+bash check.sh [--profile wsl-arch|arch|ubuntu-dev] [--dry-run] [--yes]
+bash bootstrap.sh [--profile wsl-arch|arch|ubuntu-dev] [--dry-run] [--yes]
+bash setup/system.sh [--profile wsl-arch|arch|ubuntu-dev] [--dry-run] [--yes]
 ```
 
 `check.sh` is read-only. It validates Bash, the selected profile declaration, OS,
