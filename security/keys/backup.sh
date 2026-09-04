@@ -5,16 +5,26 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 
 include_private=0
+destination=''
 for arg in "$@"; do
     case "$arg" in
         --include-private) include_private=1 ;;
-        *) parse_common_flag "$arg" || die "Usage: backup.sh [--dry-run] [--yes] [--include-private]" ;;
+        *)
+            if parse_common_flag "$arg"; then
+                continue
+            fi
+            [[ -z "$destination" ]] || die "Usage: backup.sh [--dry-run] [--yes] [--include-private] [destination]"
+            destination="$arg"
+            ;;
     esac
 done
 
 SSH_DIR="$HOME/.ssh"
-read -r -p "Backup directory [${HOME}/ssh-key-backup]: " DEST
-DEST="${DEST:-$HOME/ssh-key-backup}"
+if [[ -z "$destination" ]]; then
+    [[ -t 0 ]] || die "A backup destination is required without an interactive terminal."
+    read -r -p "Backup directory [${HOME}/ssh-key-backup]: " destination
+fi
+DEST="${destination:-$HOME/ssh-key-backup}"
 timestamp="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$DEST/$timestamp"
 

@@ -1,119 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+source "$SCRIPT_ROOT/lib/common.sh"
+source "$SCRIPT_ROOT/lib/menu.sh"
+source "$SCRIPT_ROOT/lib/actions.sh"
 
-source "$SCRIPT_DIR/lib/common.sh"
+require_interactive
 
 while true; do
-    clear 2> /dev/null || true
-    print_banner
-
-    cat << 'MENU'
-Security
-
-  1) System security
-  2) Key & secret management
-  0) Back
-
-MENU
-
-    read -r -p "Select: " CHOICE
-
-    case "$CHOICE" in
+    menu_choose 'Security' 'System security' 'Key and secret management' || continue
+    case "$MENU_SELECTION" in
+        0) exit 0 ;;
         1)
-            clear
-            print_banner
-
-            cat << 'SYSTEM'
-System security
-
-  1) Security audit
-  2) Firewall
-  3) SSH hardening
-  4) Permission audit
-  0) Back
-
-SYSTEM
-
-            read -r -p "Select: " SYSTEM_CHOICE
-
-            case "$SYSTEM_CHOICE" in
-                1)
-                    bash "$SCRIPT_DIR/security/system/audit.sh"
-                    pause
-                    ;;
-                2)
-                    bash "$SCRIPT_DIR/security/system/firewall.sh"
-                    pause
-                    ;;
-                3)
-                    bash "$SCRIPT_DIR/security/system/ssh-hardening.sh"
-                    pause
-                    ;;
-                4)
-                    bash "$SCRIPT_DIR/security/system/permissions.sh"
-                    pause
-                    ;;
-                0) ;;
-                *)
-                    log_warn "Invalid selection."
-                    sleep 1
-                    ;;
-            esac
+            while true; do
+                menu_choose 'System security' 'Security audit' 'Firewall' 'SSH hardening' 'Permission audit' || continue
+                case "$MENU_SELECTION" in
+                    0) break ;;
+                    1) bash "$SCRIPT_ROOT/security/system/audit.sh" ;;
+                    2) bash "$SCRIPT_ROOT/security/system/firewall.sh" ;;
+                    3) bash "$SCRIPT_ROOT/security/system/ssh-hardening.sh" ;;
+                    4) bash "$SCRIPT_ROOT/security/system/permissions.sh" ;;
+                esac
+                pause
+            done
             ;;
-
         2)
-            clear
-            print_banner
-
-            cat << 'KEYS'
-Key & secret management
-
-  1) Keyring
-  2) Generate SSH key
-  3) List SSH keys
-  4) Backup keys
-  5) Remove key
-  0) Back
-
-KEYS
-
-            read -r -p "Select: " KEY_CHOICE
-
-            case "$KEY_CHOICE" in
-                1) bash "$SCRIPT_DIR/security/keys/keyring.sh" ;;
-                2)
-                    bash "$SCRIPT_DIR/security/keys/generate.sh"
-                    pause
-                    ;;
-                3)
-                    bash "$SCRIPT_DIR/security/keys/list.sh"
-                    pause
-                    ;;
-                4)
-                    bash "$SCRIPT_DIR/security/keys/backup.sh"
-                    pause
-                    ;;
-                5)
-                    bash "$SCRIPT_DIR/security/keys/remove.sh"
-                    pause
-                    ;;
-                0) ;;
-                *)
-                    log_warn "Invalid selection."
-                    sleep 1
-                    ;;
-            esac
-            ;;
-
-        0)
-            exit 0
-            ;;
-
-        *)
-            log_warn "Invalid selection."
-            sleep 1
+            while true; do
+                menu_choose 'Key and secret management' 'Keyring' 'Generate SSH key' 'List SSH keys' 'Backup keys' 'Remove key' || continue
+                case "$MENU_SELECTION" in
+                    0) break ;;
+                    1) bash "$SCRIPT_ROOT/security/keys/keyring.sh" ;;
+                    2) bash "$SCRIPT_ROOT/security/keys/generate.sh" ;;
+                    3) bash "$SCRIPT_ROOT/security/keys/list.sh" ;;
+                    4) bash "$SCRIPT_ROOT/security/keys/backup.sh" ;;
+                    5) bash "$SCRIPT_ROOT/security/keys/remove.sh" ;;
+                esac
+                pause
+            done
             ;;
     esac
 done

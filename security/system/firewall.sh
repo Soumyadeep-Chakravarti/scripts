@@ -17,10 +17,16 @@ done
 
 status_firewall() {
     if command_exists ufw; then
-        sudo ufw status verbose
+        if ! ufw status verbose && ! sudo -n ufw status verbose; then
+            log_warn "Firewall status requires elevated privileges."
+        fi
     elif command_exists firewall-cmd; then
-        sudo firewall-cmd --state
-        sudo firewall-cmd --list-all
+        if firewall-cmd --state && firewall-cmd --list-all; then
+            return
+        fi
+        if ! sudo -n firewall-cmd --state || ! sudo -n firewall-cmd --list-all; then
+            log_warn "Firewall status requires elevated privileges."
+        fi
     else
         log_warn "No supported firewall frontend detected."
     fi

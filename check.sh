@@ -49,11 +49,8 @@ else
     status=1
 fi
 
-if profile_verify_environment; then
-    log_success "Profile $PROFILE_NAME matches this environment."
-else
-    status=1
-fi
+profile_verify_environment || exit 1
+log_success "Profile $PROFILE_NAME matches this environment."
 
 if [[ ${#PROFILE_PACKAGES[@]} -gt 0 ]]; then
     log_success "Profile declares ${#PROFILE_PACKAGES[@]} foundation package(s)."

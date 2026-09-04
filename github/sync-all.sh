@@ -16,6 +16,7 @@ for arg in "$@"; do
     root="$arg"
 done
 if [[ -z "$root" ]]; then
+    [[ -t 0 ]] || die "A projects directory is required without an interactive terminal."
     read -r -p "Projects directory [${HOME}/projects]: " root
 fi
 ROOT="${root:-$HOME/projects}"
