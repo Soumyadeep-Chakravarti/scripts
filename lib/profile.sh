@@ -4,7 +4,7 @@ PROFILE_DIR="${PROFILE_DIR:-${SCRIPT_ROOT:-$(pwd)}/profiles}"
 
 profile_supported() {
     case "$1" in
-        wsl-arch | ubuntu-dev) return 0 ;;
+        wsl-arch | arch | ubuntu-dev) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -17,6 +17,8 @@ profile_default() {
 
     if [[ "$os_id" == arch && "$package_manager" == pacman ]] && is_wsl; then
         printf '%s\n' wsl-arch
+    elif [[ "$os_id" == arch && "$package_manager" == pacman ]]; then
+        printf '%s\n' arch
     elif [[ "$os_id" == ubuntu && "$package_manager" == apt ]]; then
         printf '%s\n' ubuntu-dev
     else
@@ -29,7 +31,7 @@ profile_load() {
     local profile_file
 
     profile_supported "$profile" || {
-        log_error "Unsupported profile: $profile (supported: wsl-arch, ubuntu-dev)"
+        log_error "Unsupported profile: $profile (supported: wsl-arch, arch, ubuntu-dev)"
         return 1
     }
 
