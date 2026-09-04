@@ -13,13 +13,19 @@ detect_package_manager() {
 detect_os_id() {
     local id
 
-    [[ -r /etc/os-release ]] || return 1
-    id=$(
-        . /etc/os-release
-        printf '%s' "${ID:-}"
-    )
-    [[ -n "$id" ]] || return 1
-    printf '%s\n' "$id"
+    if [[ -r /etc/os-release ]]; then
+        id=$(
+            . /etc/os-release
+            printf '%s' "${ID:-}"
+        )
+        [[ -n "$id" ]] && {
+            printf '%s\n' "$id"
+            return 0
+        }
+    fi
+
+    # Minimal PRoot Arch roots may not include os-release.
+    command_exists pacman && printf '%s\n' arch
 }
 
 is_wsl() {
